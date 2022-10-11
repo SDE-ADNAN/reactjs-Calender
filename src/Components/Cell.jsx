@@ -11,8 +11,8 @@ const Cell = ({
     <div
       onClick={isActive ? onClick : null}
       className={`${className} ${
-        isBankHoliday ? "bg-black" : " "
-      } border-t-2 opacity-70  border-b-2 border-r-2 flex items-center justify-center select-none w-auto h-[5rem]`}
+        isBankHoliday ? "bg-emerald-200" : " "
+      } border-t-2 opacity-70 relative border-b-2 border-r-2 flex items-center justify-center select-none w-auto h-[5rem]`}
     >
       {children}
     </div>

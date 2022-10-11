@@ -12,7 +12,7 @@ import React from "react";
 import Cell from "./Cell";
 import "./calender.css";
 
-var date = new Date(2022, 1, 11);
+var date = new Date(2022, 4, 11);
 const Calender = ({ value = date, onChange }) => {
   const weeks = [
     "Sunday",
@@ -123,6 +123,7 @@ const Calender = ({ value = date, onChange }) => {
               className="relative calender-cell-grid"
             >
               <div className="absolute right-2 top-2">{date}</div>
+              {isBankHoliday && (<div  className=" absolute w-3 h-3 rounded-full bg-yellow-400 bottom-2 left-2"></div>)}
             </Cell>
           );
         })}
