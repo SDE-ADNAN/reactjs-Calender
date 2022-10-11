@@ -4,7 +4,7 @@ const Cell = ({ onClick, children, className, isActive = false }) => {
   return (
     <div
       onClick={isActive ? onClick : null}
-      className={`${className} h-10 border-b border-r flex items-center justify-center select-none transition-colors`}
+      className={`${className} border-t-2 opacity-70  border-b-2 border-r-2 flex items-center justify-center select-none w-auto h-[5rem]`}
     >
       {children}
     </div>

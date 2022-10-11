@@ -1,0 +1,7 @@
+.calender-cell-grid:nth-child(7n+3) {
+    color: red;
+    
+}
+.calender-cell-grid:nth-child(7n-3) {
+    color: red;
+}
