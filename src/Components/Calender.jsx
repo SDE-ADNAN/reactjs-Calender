@@ -80,7 +80,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     (day, index) => index % 2 !== 0
   );
 
-  const localStorageHolidays = (day) => {};
+//   const localStorageHolidays = (day) => {};
   const localStorage = window.localStorage;
   localStorage.setItem("saturdays", saturdays);
   console.log(localStorage.getItem("saturdays"));
