@@ -1,9 +1,9 @@
 import {
-//   add,
+  //   add,
   differenceInDays,
   endOfMonth,
   format,
-//   setDate,
+  //   setDate,
   startOfMonth,
   eachWeekendOfInterval,
   sub,
@@ -12,7 +12,7 @@ import React from "react";
 import Cell from "./Cell";
 import "./calender.css";
 
-var date = new Date(2022, 8, 11);
+var date = new Date(2022, 1, 11);
 const Calender = ({ value = date, onChange }) => {
   const weeks = [
     "Sunday",
@@ -47,25 +47,39 @@ const Calender = ({ value = date, onChange }) => {
   const prefixDays = startDate.getDay();
   const suffixDays = 6 - endDate.getDay();
 
-//   const prevMonth = () => onChange(sub(value, { months: 1 }));
-//   const nextMonth = () => onChange(add(value, { months: 1 }));
+  //   const prevMonth = () => onChange(sub(value, { months: 1 }));
+  //   const nextMonth = () => onChange(add(value, { months: 1 }));
 
   const prevMonthDays = format(endOfMonth(sub(value, { months: 1 })), "dd");
   const firstDays = prevMonthDays - prefixDays;
 
-//   const lastDayOfMonth = format(endOfMonth(date), "dd");
-//   const handleClickDate = (index) => {
-//     const date = setDate(value, index);
-//     onChange(date);
-//   };
+  //   const lastDayOfMonth = format(endOfMonth(date), "dd");
+  //   const handleClickDate = (index) => {
+  //     const date = setDate(value, index);
+  //     onChange(date);
+  //   };
 
-  // Lists all Saturdays and Sundays in the given date interval
-  
-const result = eachWeekendOfInterval({
-    start: date.setDate(1),
-    end: date.setDate(endOfMonth(date).getDate()),
-  })
-  console.log(result);
+  // Lists of 2nd and 4th saturdays of the month
+  function getSaturdays(year, month) {
+    let day, date;
+    let saturdays = [];
+    day = 1;
+    date = new Date(year, month, day);
+    while (date.getMonth() === month) {
+      if (date.getDay() === 6) {
+        // Sun=0, Mon=1, Tue=2, etc.
+        saturdays.push(new Date(year, month, day).getDate());
+      }
+      day += 1;
+      date = new Date(year, month, day);
+    }
+    return saturdays;
+  }
+  let saturdays = getSaturdays(year, month).filter(
+    (day, index) => index % 2 !== 0
+  );
+  console.log(saturdays);
+
   return (
     <div className="w-full border-t border-l">
       <div className="grid grid-cols-7 items-center justify-center text-center">
@@ -99,13 +113,13 @@ const result = eachWeekendOfInterval({
         {Array.from({ length: numDays }).map((_, index) => {
           const date = index + 1;
           const isCurrentDate = date === value.getDate();
-          const isSaturday = result.includes(date);
+          const isBankHoliday = saturdays.includes(date);
 
           return (
             <Cell
               key={date}
               isActive={isCurrentDate}
-              isSaturday={isSaturday}
+              isBankHoliday={isBankHoliday}
               className="relative calender-cell-grid"
             >
               <div className="absolute right-2 top-2">{date}</div>
