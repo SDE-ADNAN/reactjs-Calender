@@ -8,7 +8,7 @@ import {
   startOfMonth,
   sub,
 } from "date-fns";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Cell from "./Cell";
 import "./calender.css";
 import Modal from "./Modal/Modal";
@@ -40,6 +40,10 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const localStorage = window.localStorage;
   const [count, setCount] = React.useState(0);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [holidays, setHolidays] = React.useState([]);
+  const [currDate, setCurrDate] = React.useState(0);
+
+  const DateRef = useRef();
 
   const startDate = startOfMonth(value);
   const endDate = endOfMonth(value);
@@ -56,11 +60,24 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const prevMonthDays = format(endOfMonth(sub(value, { months: 1 })), "dd");
   const firstDays = prevMonthDays - prefixDays;
 
-  const handleClickDate = (index) => {
+  const handleClickDate = (index, isBankHoliday) => {
     // console.log(index);
-
+    setIsOpen(true);
     const date = setDate(value, index);
     onChange(date);
+    // let dateStr = `${month + 1}/${
+    //   index < 10 ? +"0" + `${index}` : index
+    // }/${year}`;
+    // let dateHolidayArr = JSON.parse(localStorage.getItem(dateStr));
+    // if (isBankHoliday) {
+    //   let dateArr = [];
+    //   dateArr.push("Bank Holiday");
+    //   if (dateHolidayArr === null) {
+    //     localStorage.setItem(dateStr, JSON.stringify(dateArr));
+    //   }
+    // }
+
+    // setHolidays(dateHolidayArr);
   };
 
   // Lists of 2nd and 4th saturdays of the month
@@ -84,13 +101,16 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   let [saturdays] = getSaturdays(year, month);
 
   let filteredSaturdays = saturdays.filter((_, index) => index % 2 !== 0);
-  //   useEffect(() => {
-  //     var data = [];
-  //     data.push("Bank Holiday");
-  //     filteredSaturdaysFull.map((day) => {
-  //       localStorage.setItem(`${day}`, JSON.stringify([...data]));
-  //     });
-  //   }, []);
+  useEffect(() => {
+    var data = [];
+    data.push("Bank Holiday");
+    filteredSaturdays.map((day) => {
+      localStorage.setItem(
+        `${month + 1}/${day < 10 ? +"0" + `${day}` : day}/${year}`,
+        JSON.stringify([...data])
+      );
+    });
+  }, []);
 
   const setData = (value) => {
     var dataArr = JSON.parse(localStorage.getItem(format(value, "MM/dd/yyyy")));
@@ -111,20 +131,20 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     }
   };
 
-  var date;
-  var holidayArr;
-  const dateSet = new Array(numDays);
   useEffect(() => {
+    var date;
+    var holidayArr;
+    const dateSet = new Array(numDays);
     Object.keys(localStorage).forEach((key) => {
       date = +(key.charAt(3) + key.charAt(4));
       holidayArr = localStorage.getItem(key);
-      dateSet.splice(date, 0, [...JSON.parse(holidayArr)]);
+      dateSet[date - 1] = JSON.parse(holidayArr);
     });
+    setHolidays(dateSet);
   }, [count]);
 
   return (
     <div className="w-full border-t border-l">
-      <Modal isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="grid grid-cols-7 items-center justify-center text-center">
         <Cell className="col-span-2">
           <div
@@ -172,52 +192,78 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
             </div>
           </Cell>
         ))}
+        <Modal
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          holidays={holidays}
+          date={currDate}
+        />
         {Array.from({ length: numDays }).map((_, index) => {
           const date = index + 1;
+          //   setCurrDate(date);
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
           const isBankHoliday = filteredSaturdays.includes(date);
 
           return (
-            <Cell
-              key={date}
-              isActive={isCurrentDate}
-              isBankHoliday={isBankHoliday}
-              onClick={() => {
-                handleClickDate(date);
-                setIsOpen(true);
-                // console.log(numHolidays);
-
-                // setData(new Date(year, month, date));
-              }}
-              className="relative calender-cell-grid"
-            >
-              <div
-                className={`absolute right-2 top-2 ${
-                  isToday ? "text-3xl font-bold text-sky-600" : ""
+            <>
+              <Cell
+                key={date}
+                isActive={isCurrentDate}
+                isBankHoliday={isBankHoliday}
+                onClick={(e) => {
+                  setCurrDate(+e.target.innerText);
+                  console.log(+DateRef.current);
+                  handleClickDate(date, isBankHoliday);
+                  setCount(count + 1);
+                }}
+                className={`relative calender-cell-grid ${
+                  isToday ? " bg-orange-300" : ""
                 }`}
               >
-                {date}
-              </div>
-              {isBankHoliday && (
-                <div className=" absolute w-full   bottom-2 left-2  isHoliday-flex">
-                  <div className="  w-3 h-3 rounded-full bg-yellow-400"></div>
-                  {[0, 1, 2].map((_, index) => (
-                    <div
-                      key={index}
-                      className="  w-3 h-3 rounded-full bg-yellow-800"
-                    ></div>
-                  ))}
+                <div
+                  ref={DateRef}
+                  className={`absolute right-2 top-2  ${
+                    isToday ? "text-3xl font-bold  text-red-800" : ""
+                  }`}
+                >
+                  {date}
                 </div>
-              )}
-              {isBankHoliday && (
-                <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
-                  <div className="width-full text-neutral-200 text-xs font-bold">
-                    {4}
-                  </div>
+                <div className="absolute isHoliday-flex bottom-1 left-1 block">
+                  {holidays[date - 1] === undefined && <></>}
+                  {holidays[date - 1] !== undefined && (
+                    <>
+                      {isBankHoliday && (
+                        <div className="  w-2 h-2 rounded-full  bg-indigo-500"></div>
+                      )}
+                      {holidays[date - 1].map((_, index) => (
+                        <>
+                          {!isBankHoliday && (
+                            <>
+                              <div
+                                key={index}
+                                className="  w-2 h-2 rounded-full bg-zinc-900"
+                              ></div>
+                            </>
+                          )}
+                        </>
+                      ))}
+                    </>
+                  )}
                 </div>
-              )}
-            </Cell>
+
+                {holidays[date - 1] !== undefined &&
+                  holidays[date - 1].length > 0 && (
+                    <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
+                      <div className="width-full text-neutral-200 text-xs font-bold">
+                        {holidays[date - 1] !== undefined
+                          ? holidays[date - 1].length
+                          : 0}
+                      </div>
+                    </div>
+                  )}
+              </Cell>
+            </>
           );
         })}
         {Array.from({ length: suffixDays }).map((_, index) => (

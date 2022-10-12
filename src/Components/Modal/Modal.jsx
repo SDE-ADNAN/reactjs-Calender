@@ -2,6 +2,8 @@ import React from "react";
 
 import "./modal.css";
 const Modal = (props) => {
+  console.log(props.date);
+  console.log(props.holidays);
   return (
     <>
       {props.isOpen && (
@@ -9,11 +11,17 @@ const Modal = (props) => {
           <div className="modal-inner slide-top">
             <div className="modal-content">
               <hr></hr>
-              {props.children}
-              <p>bank holiday</p>
-              <p>bank holiday</p>
-              <p>bank holiday</p>
-              <p>bank holiday</p>
+              {props.holidays[props.date - 1] === undefined && (
+                <p>no holidays</p>
+              )}
+              {props.holidays[props.date - 1] !== undefined && (
+                <>
+                  {props.holidays[props.date - 1].map((holiday, index) => (
+                    <p key={index}>{holiday}</p>
+                  ))}
+                </>
+              )}
+
               <hr></hr>
             </div>
 
