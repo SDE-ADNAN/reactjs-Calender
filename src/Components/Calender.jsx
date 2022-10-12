@@ -7,34 +7,35 @@ import {
   startOfMonth,
   sub,
 } from "date-fns";
-import React from "react";
+import React, { useEffect } from "react";
 import Cell from "./Cell";
 import "./calender.css";
+const weeks = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
-  const weeks = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+  const localStorage = window.localStorage;
 
   const startDate = startOfMonth(value);
   const endDate = endOfMonth(value);
@@ -51,11 +52,9 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const prevMonthDays = format(endOfMonth(sub(value, { months: 1 })), "dd");
   const firstDays = prevMonthDays - prefixDays;
 
-  //   const lastDayOfMonth = format(endOfMonth(date), "dd");
   const handleClickDate = (index) => {
-    console.log(index);
+    // console.log(index);
 
-    // window.localStorage.setItem(`${}`, index);
     const date = setDate(value, index);
     onChange(date);
   };
@@ -64,27 +63,72 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   function getSaturdays(year, month) {
     let day, date;
     let saturdays = [];
+    let saturdaysFull = [];
     day = 1;
     date = new Date(year, month, day);
     while (date.getMonth() === month) {
       if (date.getDay() === 6) {
         // Sun=0, Mon=1, Tue=2, etc.
         saturdays.push(new Date(year, month, day).getDate());
+        saturdaysFull.push(new Date(year, month, day));
       }
       day += 1;
       date = new Date(year, month, day);
     }
-    return saturdays;
+    return [saturdays, saturdaysFull];
   }
-  let saturdays = getSaturdays(year, month).filter(
+  let [saturdays, saturdaysFull] = getSaturdays(year, month);
+
+  let filteredSaturdays = saturdays.filter((day, index) => index % 2 !== 0);
+  //   console.log(filteredSaturdays);
+  let filteredSaturdaysFull = saturdaysFull.filter(
     (day, index) => index % 2 !== 0
   );
+  //   console.log(filteredSaturdaysFull);
 
-//   const localStorageHolidays = (day) => {};
-  const localStorage = window.localStorage;
-  localStorage.setItem("saturdays", saturdays);
-  console.log(localStorage.getItem("saturdays"));
+  //   useEffect(() => {
+  //     var data = [];
+  //     data.push("Bank Holiday");
+  //     filteredSaturdaysFull.map((day) => {
+  //       localStorage.setItem(`${day}`, JSON.stringify([...data]));
+  //     });
+  //   }, []);
 
+  const setData = (value) => {
+    var dataArr = JSON.parse(localStorage.getItem(value));
+    if (dataArr === null) {
+      //   if (filteredSaturdays.includes(value.getDate())) {
+      //     console.log("hi");
+      //     let data2 = [];
+      //     data2.push("Bank Holiday");
+      //     localStorage.setItem(`${value}`, JSON.stringify([...data2]));
+      //   } else {
+      // if data is null, add "added on click" str
+      let data2 = [];
+      data2.push("Holiday added onClick");
+      localStorage.setItem(`${value}`, JSON.stringify([...data2]));
+      //   }
+    } else {
+      // if data is not null, add "added on click" str
+      dataArr.push(" Holiday added onClick");
+      localStorage.setItem(`${value}`, JSON.stringify([...dataArr]));
+    }
+  };
+
+  var obj = [];
+  let date;
+  let holidayArr;
+  var dateSet = new Array(numDays + 1);
+  Object.keys(localStorage).forEach((key) => {
+    date = new Date(key).getDate();
+    holidayArr = localStorage.getItem(key);
+    dateSet[date] = holidayArr;
+  });
+  //   if (date && holidayArr) {
+  //     console.log(date);
+  //     console.log(JSON.parse(holidayArr));
+  //   }
+  console.log(dateSet);
   return (
     <div className="w-full border-t border-l">
       <div className="grid grid-cols-7 items-center justify-center text-center">
@@ -109,7 +153,12 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           {months[month]} {year}
         </Cell>
         <Cell className="col-span-2 ">
-          <div className=" bg-sky-600 text-gray-50 p-2 rounded m-1">
+          <div
+            onClick={() => {
+              setData(value);
+            }}
+            className=" bg-sky-600 text-gray-50 p-2 rounded m-1"
+          >
             Add Holiday
           </div>
         </Cell>
@@ -119,7 +168,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           </div>
         ))}
         {Array.from({ length: prefixDays }).map((_, index) => (
-          <Cell className="opacity-30 relative calender-cell-grid" key={index}>
+          <Cell className=" relative calender-cell-grid opacity-20" key={index}>
             <div className="absolute right-2 top-2">
               {firstDays + index + 1}
             </div>
@@ -129,14 +178,20 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           const date = index + 1;
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
-          const isBankHoliday = saturdays.includes(date);
+          const isBankHoliday = filteredSaturdays.includes(date);
+          //   const hasHolidays = localStorage.getItem();
 
           return (
             <Cell
               key={date}
               isActive={isCurrentDate}
               isBankHoliday={isBankHoliday}
-              onClick={() => handleClickDate(date)}
+              onClick={() => {
+                handleClickDate(date);
+                // console.log(numHolidays);
+
+                // setData(new Date(year, month, date));
+              }}
               className="relative calender-cell-grid"
             >
               <div
@@ -160,7 +215,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           );
         })}
         {Array.from({ length: suffixDays }).map((_, index) => (
-          <Cell className="opacity-30 relative calender-cell-grid" key={index}>
+          <Cell className="opacity-20 relative calender-cell-grid" key={index}>
             <div className="absolute right-2 top-2">{index + 1}</div>
           </Cell>
         ))}
