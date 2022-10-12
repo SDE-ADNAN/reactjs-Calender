@@ -2,8 +2,8 @@ import React from "react";
 
 import "./modal.css";
 const Modal = (props) => {
-  console.log(props.date);
-  console.log(props.holidays);
+  //   console.log(props.date);
+  //   console.log(props.holidays);
   return (
     <>
       {props.isOpen && (

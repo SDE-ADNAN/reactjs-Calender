@@ -141,23 +141,35 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
       dateSet[date - 1] = JSON.parse(holidayArr);
     });
     setHolidays(dateSet);
-  }, [count]);
+  }, [count, month]);
 
   return (
     <div className="w-full border-t border-l">
       <div className="grid grid-cols-7 items-center justify-center text-center">
         <Cell className="col-span-2">
           <div
-            onClick={prevMonth}
+            onClick={() => {
+              prevMonth();
+              setCount(count + 1);
+            }}
             className="bg-sky-600 text-gray-50 p-2 rounded m-1"
           >
             Previous
           </div>
-          <div onClick={() => handleSetToday()} className="">
+          <div
+            onClick={() => {
+              handleSetToday();
+              setCount(count + 1);
+            }}
+            className=""
+          >
             Today
           </div>
           <div
-            onClick={nextMonth}
+            onClick={() => {
+              nextMonth();
+              setCount(count + 1);
+            }}
             className="bg-sky-600 text-gray-50 p-2 rounded m-1"
           >
             Next
@@ -209,6 +221,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
             <>
               <Cell
                 key={date}
+                ref={DateRef}
                 isActive={isCurrentDate}
                 isBankHoliday={isBankHoliday}
                 onClick={(e) => {
@@ -222,7 +235,6 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                 }`}
               >
                 <div
-                  ref={DateRef}
                   className={`absolute right-2 top-2  ${
                     isToday ? "text-3xl font-bold  text-red-800" : ""
                   }`}
