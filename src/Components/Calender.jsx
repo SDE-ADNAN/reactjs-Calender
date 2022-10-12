@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   add,
   differenceInDays,
@@ -36,6 +37,7 @@ const months = [
 
 const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const localStorage = window.localStorage;
+  const [count, setCount] = React.useState(0);
 
   const startDate = startOfMonth(value);
   const endDate = endOfMonth(value);
@@ -77,15 +79,9 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     }
     return [saturdays, saturdaysFull];
   }
-  let [saturdays, saturdaysFull] = getSaturdays(year, month);
+  let [saturdays] = getSaturdays(year, month);
 
-  let filteredSaturdays = saturdays.filter((day, index) => index % 2 !== 0);
-  //   console.log(filteredSaturdays);
-  let filteredSaturdaysFull = saturdaysFull.filter(
-    (day, index) => index % 2 !== 0
-  );
-  //   console.log(filteredSaturdaysFull);
-
+  let filteredSaturdays = saturdays.filter((_, index) => index % 2 !== 0);
   //   useEffect(() => {
   //     var data = [];
   //     data.push("Bank Holiday");
@@ -95,39 +91,35 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   //   }, []);
 
   const setData = (value) => {
-    var dataArr = JSON.parse(localStorage.getItem(value));
+    var dataArr = JSON.parse(localStorage.getItem(format(value, "MM/dd/yyyy")));
     if (dataArr === null) {
-      //   if (filteredSaturdays.includes(value.getDate())) {
-      //     console.log("hi");
-      //     let data2 = [];
-      //     data2.push("Bank Holiday");
-      //     localStorage.setItem(`${value}`, JSON.stringify([...data2]));
-      //   } else {
-      // if data is null, add "added on click" str
       let data2 = [];
       data2.push("Holiday added onClick");
-      localStorage.setItem(`${value}`, JSON.stringify([...data2]));
-      //   }
+      localStorage.setItem(
+        `${format(value, "MM/dd/yyyy")}`,
+        JSON.stringify([...data2])
+      );
     } else {
       // if data is not null, add "added on click" str
       dataArr.push(" Holiday added onClick");
-      localStorage.setItem(`${value}`, JSON.stringify([...dataArr]));
+      localStorage.setItem(
+        `${format(value, "MM/dd/yyyy")}`,
+        JSON.stringify([...dataArr])
+      );
     }
   };
 
-  var obj = [];
   let date;
   let holidayArr;
   var dateSet = new Array(numDays + 1);
-  Object.keys(localStorage).forEach((key) => {
-    date = new Date(key).getDate();
-    holidayArr = localStorage.getItem(key);
-    dateSet[date] = holidayArr;
-  });
-  //   if (date && holidayArr) {
-  //     console.log(date);
-  //     console.log(JSON.parse(holidayArr));
-  //   }
+  useEffect(() => {
+    Object.keys(localStorage).forEach((key) => {
+      date = parseInt(key.substring(3, 4));
+      holidayArr = localStorage.getItem(key);
+      dateSet[date] = [...JSON.parse(holidayArr)];
+    });
+  }, [count]);
+
   console.log(dateSet);
   return (
     <div className="w-full border-t border-l">
@@ -156,6 +148,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           <div
             onClick={() => {
               setData(value);
+              setCount(count + 1);
             }}
             className=" bg-sky-600 text-gray-50 p-2 rounded m-1"
           >
