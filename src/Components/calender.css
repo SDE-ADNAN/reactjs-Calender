@@ -1,7 +1,10 @@
-.calender-cell-grid:nth-child(7n+3) {
-    color: red;
-    
+.calender-cell-grid:nth-child(7n + 3) {
+  color: red;
 }
 .calender-cell-grid:nth-child(7n-3) {
-    color: red;
+  color: red;
+}
+.isHoliday-flex {
+  display: flex;
+  column-gap: 3px;
 }

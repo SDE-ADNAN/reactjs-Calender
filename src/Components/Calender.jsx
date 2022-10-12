@@ -11,6 +11,7 @@ import {
 import React, { useEffect } from "react";
 import Cell from "./Cell";
 import "./calender.css";
+import Modal from "./Modal/Modal";
 const weeks = [
   "Sunday",
   "Monday",
@@ -38,6 +39,7 @@ const months = [
 const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const localStorage = window.localStorage;
   const [count, setCount] = React.useState(0);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const startDate = startOfMonth(value);
   const endDate = endOfMonth(value);
@@ -109,20 +111,20 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     }
   };
 
-  let date;
-  let holidayArr;
-  var dateSet = new Array(numDays + 1);
+  var date;
+  var holidayArr;
+  const dateSet = new Array(numDays);
   useEffect(() => {
     Object.keys(localStorage).forEach((key) => {
-      date = parseInt(key.substring(3, 4));
+      date = +(key.charAt(3) + key.charAt(4));
       holidayArr = localStorage.getItem(key);
-      dateSet[date] = [...JSON.parse(holidayArr)];
+      dateSet.splice(date, 0, [...JSON.parse(holidayArr)]);
     });
   }, [count]);
 
-  console.log(dateSet);
   return (
     <div className="w-full border-t border-l">
+      <Modal isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="grid grid-cols-7 items-center justify-center text-center">
         <Cell className="col-span-2">
           <div
@@ -161,8 +163,11 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           </div>
         ))}
         {Array.from({ length: prefixDays }).map((_, index) => (
-          <Cell className=" relative calender-cell-grid opacity-20" key={index}>
-            <div className="absolute right-2 top-2">
+          <Cell
+            className=" relative calender-cell-grid bg-slate-100 "
+            key={index}
+          >
+            <div className="absolute right-2 opacity-20 top-2">
               {firstDays + index + 1}
             </div>
           </Cell>
@@ -172,7 +177,6 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
           const isBankHoliday = filteredSaturdays.includes(date);
-          //   const hasHolidays = localStorage.getItem();
 
           return (
             <Cell
@@ -181,6 +185,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
               isBankHoliday={isBankHoliday}
               onClick={() => {
                 handleClickDate(date);
+                setIsOpen(true);
                 // console.log(numHolidays);
 
                 // setData(new Date(year, month, date));
@@ -195,12 +200,20 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                 {date}
               </div>
               {isBankHoliday && (
-                <div className=" absolute w-3 h-3 rounded-full bg-yellow-400 bottom-2 left-2"></div>
+                <div className=" absolute w-full   bottom-2 left-2  isHoliday-flex">
+                  <div className="  w-3 h-3 rounded-full bg-yellow-400"></div>
+                  {[0, 1, 2].map((_, index) => (
+                    <div
+                      key={index}
+                      className="  w-3 h-3 rounded-full bg-yellow-800"
+                    ></div>
+                  ))}
+                </div>
               )}
               {isBankHoliday && (
                 <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
                   <div className="width-full text-neutral-200 text-xs font-bold">
-                    1
+                    {4}
                   </div>
                 </div>
               )}
@@ -208,8 +221,13 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           );
         })}
         {Array.from({ length: suffixDays }).map((_, index) => (
-          <Cell className="opacity-20 relative calender-cell-grid" key={index}>
-            <div className="absolute right-2 top-2">{index + 1}</div>
+          <Cell
+            className=" relative calender-cell-grid bg-slate-100"
+            key={index}
+          >
+            <div className="absolute  opacity-20 right-2 top-2">
+              {index + 1}
+            </div>
           </Cell>
         ))}
       </div>
