@@ -42,6 +42,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [holidays, setHolidays] = React.useState([]);
   const [currDate, setCurrDate] = React.useState(0);
+  const [monthsList, setMonthsList] = React.useState([]);
 
   const DateRef = useRef();
 
@@ -60,24 +61,11 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const prevMonthDays = format(endOfMonth(sub(value, { months: 1 })), "dd");
   const firstDays = prevMonthDays - prefixDays;
 
-  const handleClickDate = (index, isBankHoliday) => {
-    // console.log(index);
+  const handleClickDate = (index) => {
     setIsOpen(true);
     const date = setDate(value, index);
     onChange(date);
-    // let dateStr = `${month + 1}/${
-    //   index < 10 ? +"0" + `${index}` : index
-    // }/${year}`;
-    // let dateHolidayArr = JSON.parse(localStorage.getItem(dateStr));
-    // if (isBankHoliday) {
-    //   let dateArr = [];
-    //   dateArr.push("Bank Holiday");
-    //   if (dateHolidayArr === null) {
-    //     localStorage.setItem(dateStr, JSON.stringify(dateArr));
-    //   }
-    // }
-
-    // setHolidays(dateHolidayArr);
+    //
   };
 
   // Lists of 2nd and 4th saturdays of the month
@@ -106,7 +94,10 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     data.push("Bank Holiday");
     filteredSaturdays.map((day) => {
       localStorage.setItem(
-        `${month + 1}/${day < 10 ? +"0" + `${day}` : day}/${year}`,
+        // taking verymuch precison while setting key as its unique
+        `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
+          day < 10 ? +"0" + `${day}` : day
+        }/${year}`,
         JSON.stringify([...data])
       );
     });
@@ -135,14 +126,17 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     var date;
     var holidayArr;
     const dateSet = new Array(numDays);
+    var monthsFromLocalStorage = [];
     Object.keys(localStorage).forEach((key) => {
       date = +(key.charAt(3) + key.charAt(4));
+      let month = +(key.charAt(0) + key.charAt(1));
+      monthsFromLocalStorage.push(month);
       holidayArr = localStorage.getItem(key);
       dateSet[date - 1] = JSON.parse(holidayArr);
     });
     setHolidays(dateSet);
+    setMonthsList(monthsFromLocalStorage);
   }, [count, month]);
-
   return (
     <div className="w-full border-t border-l">
       <div className="grid grid-cols-7 items-center justify-center text-center">
@@ -216,6 +210,9 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
           const isBankHoliday = filteredSaturdays.includes(date);
+          const isValidMonth = monthsList.includes(
+            +`${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}`
+          );
 
           return (
             <>
@@ -226,7 +223,6 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                 isBankHoliday={isBankHoliday}
                 onClick={(e) => {
                   setCurrDate(+e.target.innerText);
-                  console.log(+DateRef.current);
                   handleClickDate(date, isBankHoliday);
                   setCount(count + 1);
                 }}
@@ -242,38 +238,44 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                   {date}
                 </div>
                 <div className="absolute isHoliday-flex bottom-1 left-1 block">
-                  {holidays[date - 1] === undefined && <></>}
-                  {holidays[date - 1] !== undefined && (
+                  {isValidMonth && (
                     <>
-                      {isBankHoliday && (
-                        <div className="  w-2 h-2 rounded-full  bg-indigo-500"></div>
-                      )}
-                      {holidays[date - 1].map((_, index) => (
+                      {holidays[date - 1] !== undefined && (
                         <>
-                          {!isBankHoliday && (
-                            <>
-                              <div
-                                key={index}
-                                className="  w-2 h-2 rounded-full bg-zinc-900"
-                              ></div>
-                            </>
+                          {isBankHoliday && (
+                            <div className="  w-2 h-2 rounded-full  bg-indigo-500"></div>
                           )}
+                          {holidays[date - 1].map((_, index) => (
+                            <>
+                              {!isBankHoliday && isValidMonth && (
+                                <>
+                                  <div
+                                    key={index}
+                                    className="  w-2 h-2 rounded-full bg-zinc-900"
+                                  ></div>
+                                </>
+                              )}
+                            </>
+                          ))}
                         </>
-                      ))}
+                      )}
                     </>
                   )}
                 </div>
-
-                {holidays[date - 1] !== undefined &&
-                  holidays[date - 1].length > 0 && (
-                    <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
-                      <div className="width-full text-neutral-200 text-xs font-bold">
-                        {holidays[date - 1] !== undefined
-                          ? holidays[date - 1].length
-                          : 0}
-                      </div>
-                    </div>
-                  )}
+                {isValidMonth && (
+                  <>
+                    {holidays[date - 1] !== undefined &&
+                      holidays[date - 1].length > 0 && (
+                        <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
+                          <div className="width-full text-neutral-200 text-xs font-bold">
+                            {holidays[date - 1] !== undefined
+                              ? holidays[date - 1].length
+                              : 0}
+                          </div>
+                        </div>
+                      )}
+                  </>
+                )}
               </Cell>
             </>
           );
