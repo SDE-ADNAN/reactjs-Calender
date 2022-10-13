@@ -108,17 +108,49 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
 
   // for setting the Bank holidays in the local storage
   useEffect(() => {
-    console.log("hi");
     var data = [];
-    data.push("Bank Holiday");
+    var data2 = [];
+    // data.push("Bank Holiday");
     filteredSaturdays.map((day) => {
-      localStorage.setItem(
-        // taking verymuch precison while setting key as its unique
-        `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
-          day < 10 ? +"0" + `${day}` : day
-        }/${year}`,
-        JSON.stringify([...data])
-      );
+      data.push(`Bank Holiday`);
+      if (data.length < 2) {
+        if (
+          localStorage.getItem(
+            `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
+              day < 10 ? +"0" + `${day}` : day
+            }/${year}`
+          ) === null
+        ) {
+          localStorage.setItem(
+            // taking verymuch precison while setting key as it must  unique
+            `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
+              day < 10 ? +"0" + `${day}` : day
+            }/${year}`,
+
+            JSON.stringify([...data])
+          );
+        }
+      } else {
+        let datapopped = data.pop();
+        data2.push(datapopped);
+
+        if (
+          localStorage.getItem(
+            `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
+              day < 10 ? +"0" + `${day}` : day
+            }/${year}`
+          ) === null
+        ) {
+          localStorage.setItem(
+            // taking verymuch precison while setting key as it must  unique
+            `${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}/${
+              day < 10 ? +"0" + `${day}` : day
+            }/${year}`,
+
+            JSON.stringify([...data2])
+          );
+        }
+      }
     });
   }, [monthCount]);
 
@@ -126,14 +158,14 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     var dataArr = JSON.parse(localStorage.getItem(format(value, "MM/dd/yyyy")));
     if (dataArr === null) {
       let data2 = [];
-      data2.push("Holiday added onClick");
+      data2.push(` Holiday added onClick`);
       localStorage.setItem(
         `${format(value, "MM/dd/yyyy")}`,
         JSON.stringify([...data2])
       );
     } else {
       // if data is not null, add "added on click" str
-      dataArr.push(" Holiday added onClick");
+      dataArr.push(` Holiday added onClick`);
       localStorage.setItem(
         `${format(value, "MM/dd/yyyy")}`,
         JSON.stringify([...dataArr])
@@ -149,10 +181,12 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     var monthsFromLocalStorage = [];
     Object.keys(localStorage).forEach((key) => {
       date = +(key.charAt(3) + key.charAt(4));
-      let month = +(key.charAt(0) + key.charAt(1));
-      monthsFromLocalStorage.push(month);
+      let month2 = +(key.charAt(0) + key.charAt(1));
+      monthsFromLocalStorage.push(month2);
       holidayArr = localStorage.getItem(key);
-      dateSet[date - 1] = JSON.parse(holidayArr);
+      if (month2 == month + 1) {
+        dateSet[date - 1] = JSON.parse(holidayArr);
+      }
     });
     setHolidays(dateSet);
     setMonthsList(monthsFromLocalStorage);
@@ -230,7 +264,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
           const isBankHoliday = filteredSaturdays.includes(date);
-          const isValidMonth = monthsList.includes(
+          const isThisMonth = monthsList.includes(
             +`${month + 1 < 10 ? +"0" + `${month + 1}` : month + 1}`
           );
 
@@ -264,29 +298,36 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                   }}
                   className="absolute isHoliday-flex bottom-1 left-1 block"
                 >
-                  {isValidMonth && holidays[date - 1] !== undefined && (
+                  {holidays[date - 1] !== undefined && (
                     <>
                       {isBankHoliday && (
                         <div className="absolute  w-2 h-2 rounded-full  bg-indigo-500"></div>
                       )}
-                      {holidays[date - 1].map((_, index) => (
-                        <>
-                          {isValidMonth && (
-                            <>
-                              <div
-                                key={index}
-                                className="  w-2 h-2 rounded-full bg-zinc-900"
-                              ></div>
-                            </>
-                          )}
-                        </>
-                      ))}
+                      {holidays[date - 1].map((day, index) => {
+                        let monthHere = +`${
+                          month + 1 < 10 ? +"0" + `${month + 1}` : month + 1
+                        }`;
+                        let recievedMonth = +day.charAt(0) + day.charAt(1);
+                        return (
+                          <>
+                            {isThisMonth && (
+                              <>
+                                <div
+                                  key={index}
+                                  className="  w-2 h-2 rounded-full bg-zinc-900"
+                                ></div>
+                              </>
+                            )}
+                          </>
+                        );
+                      })}
                     </>
                   )}
                 </div>
-                {isValidMonth && (
+                {isThisMonth && (
                   <>
                     {holidays[date - 1] !== undefined &&
+                      // filteredSaturdays.includes(date) &&
                       holidays[date - 1].length > 0 && (
                         <div
                           onClick={() => {
