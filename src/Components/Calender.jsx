@@ -223,7 +223,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           holidays={holidays}
-          date={currDate}
+          date={value.getDate()}
         />
         {Array.from({ length: numDays }).map((_, index) => {
           const date = index + 1;
