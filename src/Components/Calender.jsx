@@ -8,7 +8,7 @@ import {
   startOfMonth,
   sub,
 } from "date-fns";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Cell from "./Cell";
 import "./calender.css";
 import Modal from "./Modal/Modal";
@@ -38,34 +38,49 @@ const months = [
 
 const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const localStorage = window.localStorage;
-  const [count, setCount] = React.useState(0);
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [holidays, setHolidays] = React.useState([]);
-  const [currDate, setCurrDate] = React.useState(0);
-  const [monthsList, setMonthsList] = React.useState([]);
+  // count is used for rendering the calender using useEffect
+  const [count, setCount] = useState(0);
+  // isOpen is used for opening and closing the modal
+  const [isOpen, setIsOpen] = useState(false);
+  const [validMonth, setValidMonth] = useState(false);
+  // holidays is used for storing the holidays recieved from the browser local storage
+  const [holidays, setHolidays] = useState([]);
+  // currdate is used for storing the current date (to maintain the state of selected date in calender)
+  const [currDate, setCurrDate] = useState(0);
+  // monthsList is Used for storing the months list recieved from the browser local storage(keys)
+  const [monthsList, setMonthsList] = useState([]);
+  const [monthCount, setMonthCount] = useState(0);
 
   const DateRef = useRef();
 
+  // variables for storing the start , end date,numDays(no.of days this month has) ,
+  // month and year of the currmonth
   const startDate = startOfMonth(value);
   const endDate = endOfMonth(value);
   const numDays = differenceInDays(endDate, startDate) + 1;
   const month = value.getMonth();
   const year = value.getFullYear();
 
+  // prefixdays is the starting empty cells in the calender with dates of previous month
   const prefixDays = startDate.getDay();
+  // suffixdays is the ending empty cells in the calender with dates of next month
   const suffixDays = 6 - endDate.getDay();
 
+  // gives previous month and next month
   const prevMonth = () => onChange(sub(value, { months: 1 }));
   const nextMonth = () => onChange(add(value, { months: 1 }));
 
+  // no.of days in the previous month
   const prevMonthDays = format(endOfMonth(sub(value, { months: 1 })), "dd");
+  // date after which we will show the prefix days
   const firstDays = prevMonthDays - prefixDays;
 
   const handleClickDate = (index) => {
+    // opens the modal
     setIsOpen(true);
     const date = setDate(value, index);
+    // updates the currDate state from the parent component
     onChange(date);
-    //
   };
 
   // Lists of 2nd and 4th saturdays of the month
@@ -88,8 +103,12 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   }
   let [saturdays] = getSaturdays(year, month);
 
+  // returns the list of Bank holidays i.e 2nd and 4th saturday for the month
   let filteredSaturdays = saturdays.filter((_, index) => index % 2 !== 0);
+
+  // for setting the Bank holidays in the local storage
   useEffect(() => {
+    console.log("hi");
     var data = [];
     data.push("Bank Holiday");
     filteredSaturdays.map((day) => {
@@ -101,7 +120,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
         JSON.stringify([...data])
       );
     });
-  }, []);
+  }, [monthCount]);
 
   const setData = (value) => {
     var dataArr = JSON.parse(localStorage.getItem(format(value, "MM/dd/yyyy")));
@@ -122,6 +141,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     }
   };
 
+  // for getting list if holidays from local storage
   useEffect(() => {
     var date;
     var holidayArr;
@@ -137,6 +157,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
     setHolidays(dateSet);
     setMonthsList(monthsFromLocalStorage);
   }, [count, month]);
+
   return (
     <div className="w-full border-t border-l">
       <div className="grid grid-cols-7 items-center justify-center text-center">
@@ -144,7 +165,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           <div
             onClick={() => {
               prevMonth();
-              setCount(count + 1);
+              setMonthCount((state) => state + 1);
             }}
             className="bg-sky-600 text-gray-50 p-2 rounded m-1"
           >
@@ -153,7 +174,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           <div
             onClick={() => {
               handleSetToday();
-              setCount(count + 1);
+              setMonthCount((state) => state + 1);
             }}
             className=""
           >
@@ -162,7 +183,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
           <div
             onClick={() => {
               nextMonth();
-              setCount(count + 1);
+              setMonthCount((state) => state + 1);
             }}
             className="bg-sky-600 text-gray-50 p-2 rounded m-1"
           >
@@ -206,7 +227,6 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
         />
         {Array.from({ length: numDays }).map((_, index) => {
           const date = index + 1;
-          //   setCurrDate(date);
           const isCurrentDate = date === value.getDate();
           const isToday = date === value.getDate();
           const isBankHoliday = filteredSaturdays.includes(date);
@@ -223,7 +243,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                 isBankHoliday={isBankHoliday}
                 onClick={(e) => {
                   setCurrDate(+e.target.innerText);
-                  handleClickDate(date, isBankHoliday);
+                  handleClickDate(date);
                   setCount(count + 1);
                 }}
                 className={`relative calender-cell-grid ${
@@ -237,28 +257,30 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                 >
                   {date}
                 </div>
-                <div className="absolute isHoliday-flex bottom-1 left-1 block">
-                  {isValidMonth && (
+                <div
+                  onClick={() => {
+                    handleClickDate(date);
+                    setCount(count + 1);
+                  }}
+                  className="absolute isHoliday-flex bottom-1 left-1 block"
+                >
+                  {isValidMonth && holidays[date - 1] !== undefined && (
                     <>
-                      {holidays[date - 1] !== undefined && (
-                        <>
-                          {isBankHoliday && (
-                            <div className="  w-2 h-2 rounded-full  bg-indigo-500"></div>
-                          )}
-                          {holidays[date - 1].map((_, index) => (
-                            <>
-                              {!isBankHoliday && isValidMonth && (
-                                <>
-                                  <div
-                                    key={index}
-                                    className="  w-2 h-2 rounded-full bg-zinc-900"
-                                  ></div>
-                                </>
-                              )}
-                            </>
-                          ))}
-                        </>
+                      {isBankHoliday && (
+                        <div className="absolute  w-2 h-2 rounded-full  bg-indigo-500"></div>
                       )}
+                      {holidays[date - 1].map((_, index) => (
+                        <>
+                          {isValidMonth && (
+                            <>
+                              <div
+                                key={index}
+                                className="  w-2 h-2 rounded-full bg-zinc-900"
+                              ></div>
+                            </>
+                          )}
+                        </>
+                      ))}
                     </>
                   )}
                 </div>
@@ -266,7 +288,13 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
                   <>
                     {holidays[date - 1] !== undefined &&
                       holidays[date - 1].length > 0 && (
-                        <div className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%">
+                        <div
+                          onClick={() => {
+                            handleClickDate(date);
+                            setCount(count + 1);
+                          }}
+                          className=" absolute w-4 h-4 rounded-full bg-red-600 top-4 left-50% right-50%"
+                        >
                           <div className="width-full text-neutral-200 text-xs font-bold">
                             {holidays[date - 1] !== undefined
                               ? holidays[date - 1].length
