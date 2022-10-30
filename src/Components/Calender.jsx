@@ -49,6 +49,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
   const [currDate, setCurrDate] = useState(0);
   // monthsList is Used for storing the months list recieved from the browser local storage(keys)
   const [monthsList, setMonthsList] = useState([]);
+  // for updating the calender when the month value changes
   const [monthCount, setMonthCount] = useState(0);
 
   const DateRef = useRef();
@@ -272,7 +273,7 @@ const Calender = ({ value = new Date(), onChange, handleSetToday }) => {
             <>
               <Cell
                 key={date}
-                ref={DateRef}
+                // ref={DateRef}
                 isActive={isCurrentDate}
                 isBankHoliday={isBankHoliday}
                 onClick={(e) => {
